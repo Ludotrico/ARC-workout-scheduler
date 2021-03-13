@@ -75,14 +75,13 @@ def main():
         PASSWORD = input("\nEnter your UCI password: ")
         print("\n\nScheduling workouts .. .. ..\n\n")
 
-        #Sync so that the function is called at second :00
-        sleep(60 - datetime.now().second)
         scheduleScrape()
     else:
         print("\nNothing to schedule.\n")
 
 
 def printSchedule():
+    print("\nWEEKLY WORKOUTS:")
     found = False
     for i, elem in enumerate(DAYS):
         if not elem.get("time"):
@@ -99,9 +98,9 @@ def printSchedule():
 
 
 def scheduleScrape():
-    #schedule at second :10
-    sleep(1)
-    #print(datetime.now().second)
+    #Sync so that the function is called at second :00
+    sleep(60 - datetime.now().second)
+
     for i, elem in enumerate(DAYS):
         if not elem.get("time"):
             continue
@@ -125,7 +124,7 @@ def scheduleScrape():
 
     while True:
         schedule.run_pending()
-        time.sleep(10)  # wait
+        time.sleep(8)  # wait
 
 def scrape(dayIndex, dayTime, headless=True):
     global USERNAME, PASSWORD
@@ -157,7 +156,7 @@ def scrape(dayIndex, dayTime, headless=True):
         slotAvailable = False
         #Iterate through available times
         for availability in browser.find_elements_by_class_name("caption"):
-            if dayTime in availability.find_element_by_class_name("program-schedule-card-header").text:
+            if dayTime in availability.text:
                 #Case this is the time user wants to schedule
                 slotAvailable = True
                 # click on register
@@ -180,11 +179,15 @@ def scrape(dayIndex, dayTime, headless=True):
 
                 break
 
+        if not slotAvailable:
+            print(f"\n\n- - - - - - - - - -\nUnable to schedule {DAYS[dayIndex]['day']} @ {dayTime}, time slot does not exist.\n- - - - - - - - - -\n\n")
+            return
+
         #print(getframeinfo(currentframe()).lineno)
         #Logged in, time to hit register again
         # Iterate through available times
         for availability in browser.find_elements_by_class_name("caption"):
-            if dayTime in availability.find_element_by_class_name("program-schedule-card-header").text:
+            if dayTime in availability.text:
                 slotAvailable = True
                 # Case this is the time user wants to schedule
                 # click on register
@@ -192,8 +195,7 @@ def scrape(dayIndex, dayTime, headless=True):
                 sleep(3)
                 break
 
-        if not slotAvailable:
-            print(f"\n\n- - - - - - - - - -\nUnable to schedule {DAYS[dayIndex]['day']} @ {dayTime}, time slot does not exist.\n- - - - - - - - - -\n\n")
+
 
         #print(getframeinfo(currentframe()).lineno)
         switches = browser.find_elements_by_class_name("radio-inline")
@@ -266,6 +268,6 @@ def test():
     browser.close()
 
 if __name__ == "__main__":
-    # main()
-    scrape(6, "2:00 PM - 3:00 PM", True)
+    main()
+    #scrape(4, "4:00 PM - 5:00 PM", False)
     #test()
